@@ -9,15 +9,26 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
-  "main": "./out/extension.js",
+  "activationEvents": [
+    "onCommand:extension.exportSelectedFilesToMarkdown"
+  ],
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "extension.exportSelectedFilesToMarkdown",
-        "title": "Export Selected Files to Markdown"
+        "title": "Lumina: Export Selected Files to Markdown"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "extension.exportSelectedFilesToMarkdown",
+          "when": "resourceLangId",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

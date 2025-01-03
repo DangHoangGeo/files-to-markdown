@@ -4,29 +4,41 @@ import * as fs from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
   // Register the command
+  console.log('Congratulations, your extension "files-to-markdown" is now active!');
   const disposable = vscode.commands.registerCommand(
     'extension.exportSelectedFilesToMarkdown',
-    async (uriList: vscode.Uri[] | undefined) => {
+    async (uri: vscode.Uri, uris: vscode.Uri[]) => {
       try {
-        // If no uriList is provided, we can attempt to get the selected items from the Explorer
-        if (!uriList || uriList.length === 0) {
-          uriList = await getSelectedFiles();
-        }
-
-        if (!uriList || uriList.length === 0) {
-          vscode.window.showInformationMessage('No files selected.');
-          return;
+        vscode.window.showInformationMessage('Exporting files to markdown...');
+        
+        // Handle both single and multiple selection cases
+        let filesToProcess: vscode.Uri[] = [];
+        
+        if (uri && uris && uris.length > 0) {
+          // Context menu with multiple files selected
+          filesToProcess = uris;
+        } else if (uri) {
+          // Context menu with single file
+          filesToProcess = [uri];
+        } else {
+          // Command palette case - show file picker
+          const selectedFiles = await getSelectedFiles();
+          if (!selectedFiles || selectedFiles.length === 0) {
+            vscode.window.showInformationMessage('No files selected.');
+            return;
+          }
+          filesToProcess = selectedFiles;
         }
 
         // Prepare final markdown
         let markdownOutput = '';
         
-        for (const fileUri of uriList) {
+        for (const fileUri of filesToProcess) {
           const relativePath = vscode.workspace.asRelativePath(fileUri);
           const fileContent = await fs.promises.readFile(fileUri.fsPath, 'utf-8');
 
           markdownOutput += `## ${relativePath}\n`;
-          markdownOutput += `\`\`\`\\n${fileContent}\n\`\`\`\n\n`;
+          markdownOutput += '```\n' + fileContent + '\n```\n\n';
         }
 
         // Create a new untitled document with the combined markdown content
